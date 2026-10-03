@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 470" font-family="Microsoft YaHei, PingFang SC, sans-serif">
+<rect width="860" height="470" fill="#fafaf8"/>
+<text x="210.0" y="34" text-anchor="middle" font-size="22" font-weight="700" fill="#222">方案 A</text>
+<rect x="8" y="46" width="404" height="410" rx="10" fill="#f6f6f3" stroke="#ccc"/>
+<polygon points="102.1,369.6 116.4,365.8 107.0,343.2 99.0,344.2" fill="#f3dfa0" stroke="#b8860b" stroke-width="1.5"/>
+<polygon points="318.7,369.2 332.8,367.6 326.4,344.0 319.7,344.8" fill="#f3dfa0" stroke="#b8860b" stroke-width="1.5"/>
+<polygon points="86.5,101.6 105.7,99.9 97.3,114.9" fill="#bfe3f5" stroke="#2c7fb8" stroke-width="1.5"/>
+<circle cx="108.0" cy="359.0" r="5" fill="#b8860b"/>
+<circle cx="324.7" cy="359.0" r="5" fill="#b8860b"/>
+<circle cx="65.3" cy="326.2" r="5" fill="#2c7fb8"/>
+<circle cx="95.2" cy="89.8" r="5" fill="#2c7fb8"/>
+<line x1="123.60000000000001" y1="359.0" x2="303.90999999999997" y2="359.0" stroke="#b8860b" stroke-width="2" stroke-dasharray="6 5"/><polygon points="303.90999999999997,353.0 303.90999999999997,365.0 316.90999999999997,359.0" fill="#b8860b"/>
+<text x="108" y="393" text-anchor="middle" font-size="18" font-weight="700" fill="#8a6508">B1（刻1）</text>
+<text x="325" y="393" text-anchor="middle" font-size="18" font-weight="700" fill="#8a6508">B2（刻2）</text>
+<text x="117" y="310" text-anchor="middle" font-size="18" font-weight="700" fill="#1f5f8b">H1（六边形）</text>
+<text x="95" y="72" text-anchor="middle" font-size="18" font-weight="700" fill="#1f5f8b">H2（带三角）</text>
+<text x="210.0" y="448" text-anchor="middle" font-size="17" fill="#333">从 B1 看向 B2，H2 在左手边</text>
+<text x="650.0" y="34" text-anchor="middle" font-size="22" font-weight="700" fill="#222">方案 B</text>
+<rect x="448" y="46" width="404" height="410" rx="10" fill="#f6f6f3" stroke="#ccc"/>
+<polygon points="542.1,122.6 556.4,118.8 547.0,96.2 539.0,97.2" fill="#f3dfa0" stroke="#b8860b" stroke-width="1.5"/>
+<polygon points="758.7,122.2 772.8,120.6 766.4,97.0 759.7,97.8" fill="#f3dfa0" stroke="#b8860b" stroke-width="1.5"/>
+<polygon points="540.6,367.7 522.4,374.0 526.9,357.4" fill="#bfe3f5" stroke="#2c7fb8" stroke-width="1.5"/>
+<circle cx="548.0" cy="112.0" r="5" fill="#b8860b"/>
+<circle cx="764.7" cy="112.0" r="5" fill="#b8860b"/>
+<circle cx="505.3" cy="144.8" r="5" fill="#2c7fb8"/>
+<circle cx="535.2" cy="381.2" r="5" fill="#2c7fb8"/>
+<line x1="563.6" y1="112.0" x2="743.91" y2="112.0" stroke="#b8860b" stroke-width="2" stroke-dasharray="6 5"/><polygon points="743.91,106.0 743.91,118.0 756.91,112.0" fill="#b8860b"/>
+<text x="548" y="90" text-anchor="middle" font-size="18" font-weight="700" fill="#8a6508">B1（刻1）</text>
+<text x="765" y="90" text-anchor="middle" font-size="18" font-weight="700" fill="#8a6508">B2（刻2）</text>
+<text x="557" y="167" text-anchor="middle" font-size="18" font-weight="700" fill="#1f5f8b">H1（六边形）</text>
+<text x="535" y="409" text-anchor="middle" font-size="18" font-weight="700" fill="#1f5f8b">H2（带三角）</text>
+<text x="650.0" y="448" text-anchor="middle" font-size="17" fill="#333">从 B1 看向 B2，H2 在右手边</text>
+</svg>
