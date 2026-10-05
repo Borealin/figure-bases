@@ -7,7 +7,7 @@
 | 目的 | 2B 的圆底座（Ø≈99mm）和 A2 的六边形底座（≈166 × 80mm）合成一块，两人站成 L 形，A2 的 H1 脚紧挨 2B 的 B1 脚 |
 | 成品 | 128 × 144 × 11mm 实心底座：4 个钉孔、2 个 2B 鞋跟梯形凹槽、1 个 A2 鞋跟三角凹槽 |
 | 打印 | Bambu A1 mini，0.4 喷嘴，0.20mm Standard @BBL A1M，Bambu PLA Basic，约 53 分钟 / 47g |
-| 状态 | 已打印，效果 OK |
+| 状态 | 已打印（`base_v1`），效果 OK；`base` 是后来加了刻字 "2B" / "A2" 的版本 |
 
 ![正式底座](docs/base.svg)
 
@@ -90,7 +90,8 @@ A2 三角凹槽：底边（靠 H2）7.42，两腰 6.6，底边离 H2 孔边 2.2�
 |---|---|
 | `figure_base.py` | CadQuery 脚本，实测数据、配合参数和每次试装的调整都在开头 |
 | `preview.py` | 生成 `docs/base.svg`（加 `--trial` 生成垫块预览） |
-| `out/base.stl` / `.step` / `_a1mini.3mf` | **正式底座** |
+| `out/base.stl` / `.step` / `_a1mini.3mf` | **正式底座**，带刻字 |
+| `out/base_v1*` | 实际打印的正式底座（无刻字） |
 | `out/test_base_thin*.stl` / `_a1mini.3mf` | 试摆底座：`_v1` 是实际打印试装的版本，不带后缀的是按最终参数生成的 |
 | `out/trial_v1*` / `out/trial_v2*` | 验证件 v1（垫块 + 公差条）、v2（只有垫块），都是当时实际打印的版本 |
 | `docs/` | 孔位编号、凹槽测量图、镜像对比、各阶段预览 |

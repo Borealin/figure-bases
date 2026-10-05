@@ -7,7 +7,7 @@
 | 目的 | 两块原厂六边形底座（约 162 × 74mm）合成一块，两人交叠站位，省空间 |
 | 成品 | 146 × 97 × 11mm 实心底座，6 个六边形盲孔 |
 | 打印 | Bambu A1 mini，0.4 喷嘴，0.20mm Standard @BBL A1M，Bambu PLA Basic，约 50 分钟 / 44g |
-| 状态 | 已打印，效果 OK |
+| 状态 | 已打印（`base_v1`），效果 OK；`base` 是后来加了刻字 "Josuke" / "Rohan" 的版本 |
 
 ![正式底座](docs/base.svg)
 
@@ -67,7 +67,8 @@
 |---|---|
 | `figure_base.py` | CadQuery 建模脚本，实测数据和所有参数都在文件开头 |
 | `preview.py` | 生成 `docs/` 下的预览图 |
-| `out/base.stl` / `.step` / `_a1mini.3mf` | **正式底座**（3mf 是切好片的项目，可直接打印） |
+| `out/base.stl` / `.step` / `_a1mini.3mf` | **正式底座**，带刻字（3mf 是切好片的项目，可直接打印） |
+| `out/base_v1*` | 实际打印的正式底座（无刻字） |
 | `out/test_pads.stl` / `_a1mini.3mf` | 验证垫块（每只脚一个） |
 | `out/tolerance_strip.stl` / `_a1mini.3mf` | 公差条，刻字 0~4 = 孔放大 +0.0~+0.4mm（用 J3 的钉） |
 | `out/test_base_thin.stl` | 试摆底座（薄底板 + 桩 + 加强筋） |

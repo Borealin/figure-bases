@@ -264,6 +264,31 @@ def build_solid_base(holes):
     return body, outline
 
 
+# ---------------------------------------------------------------- 名字（防止几套搞混）
+import sys as _sys  # noqa: E402
+_sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "tools"))
+import basekit  # noqa: E402
+
+# 两人都面朝 +Y：文字沿"往右"方向排，正面看是正的；从各自三个孔的中心附近开始找空位
+LABELS = {"Josuke": ("J1", "J2", "J3"), "Rohan": ("R1", "R2", "R3")}
+FRONT_DIR = (0.0, 1.0)
+
+
+def add_labels(body, holes, outline, thin=False):
+    keep = POST_R + 1.5 if thin else 1.5               # 试摆底座要躲开桩
+    circles = [(holes[k], (PEGS[k][0] + CLEARANCE) / math.sqrt(3) + CHAMFER + keep) for k in holes]
+    segments = []
+    if thin and RIB_H > 0:                             # 试摆底座的加强筋是穿过各桩的前后向长条
+        for g in (("J1", "J2"), ("J3",), ("R1",), ("R2", "R3")):
+            x = sum(holes[k][0] for k in g) / len(g)
+            segments.append((((x, -300.0), (x, 300.0)), RIB_W / 2 + 1.5))
+    labels = [(name, (sum(holes[k][0] for k in ks) / 3, sum(holes[k][1] for k in ks) / 3))
+              for name, ks in LABELS.items()]
+    body, _ = basekit.add_labels(body, labels, basekit.right_angle([FRONT_DIR]), outline, circles, segments,
+                                 top=PLATE if thin else T, raised=thin)
+    return body
+
+
 def fit_on_bed(body):
     """放得下就不转（方向和摆放照片一致）；放不下再找包围盒最小的角度。移到原点。"""
     bb = body.val().BoundingBox()
@@ -295,14 +320,14 @@ if __name__ == "__main__":
         print("已输出", OUT / f"{name}.stl")
 
     # 第三步：正式底座
-    body, _ = build_solid_base(holes)
-    body, deg, w, h = fit_on_bed(body)
+    body, outline = build_solid_base(holes)
+    body, deg, w, h = fit_on_bed(add_labels(body, holes, outline))
     ok = "放得下" if max(w, h) <= BED - 4 else "放不下！"
     print(f"正式底座：厚 {T} mm，{w:.1f} x {h:.1f} mm，旋转 {deg} 度，A1 mini {ok}")
     save(body, "base", step=True)
     # 第二步：试摆底座（想重新验证摆位时用）
-    thin, _ = build_base(holes)
-    save(fit_on_bed(thin)[0], "test_base_thin")
+    thin, outline = build_base(holes)
+    save(fit_on_bed(add_labels(thin, holes, outline, thin=True))[0], "test_base_thin")
     # 第一步：验证垫块 + 公差条
     save(build_trial(with_tol=False)[1], "test_pads")
     save(tolerance_strip(), "tolerance_strip")

@@ -350,6 +350,29 @@ def build_base(holes, thin=False):
     return cut_features(body, holes, BASE_T)
 
 
+# ---------------------------------------------------------------- 名字（防止几套搞混）
+import sys as _sys  # noqa: E402
+_sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "tools"))
+import basekit  # noqa: E402
+
+# 手办朝向 = 组内两孔连线方向逆时针转的角度（IMG_4988 俯拍，照片下方是正面）
+FRONT = {"2B": ("B1", "B2", 32.1), "A2": ("H1", "H2", -76.8)}
+LABELS = {"2B": "2B", "A2": "A2"}
+
+
+def add_labels(body, holes, thin=False):
+    keep = POST_WALL + 1.5 if thin else 1.5            # 试摆底座要躲开桩
+    circles = [(p, keep) for pts in foot_points(holes).values() for p in pts]
+    segments = ([((holes[a], holes[b]), RIB_W / 2 + 1.5) for a, b in (("B2", "B1"), ("B1", "H1"), ("H1", "H2"))]
+                if thin else [])
+    fronts = [basekit.front_dir(holes, a, b, deg) for a, b, deg in FRONT.values()]
+    centers = orig_centers(holes)
+    body, _ = basekit.add_labels(body, [(LABELS[g], centers[g]) for g in LABELS], basekit.right_angle(fronts),
+                                 outline_points(holes), circles, segments,
+                                 top=PLATE if thin else BASE_T, raised=thin)
+    return body
+
+
 def fit_on_bed(body):
     """放得下就不转；放不下找包围盒最小的角度。移到原点。"""
     bb = body.val().BoundingBox()
@@ -397,7 +420,7 @@ if __name__ == "__main__":
     for k, (x, y) in holes.items():
         print(f"  {k}: ({x:7.2f}, {y:7.2f})")
     for name, thin in (("test_base_thin", True), ("base", False)):
-        body, deg, w, h = fit_on_bed(build_base(holes, thin=thin))
+        body, deg, w, h = fit_on_bed(add_labels(build_base(holes, thin=thin), holes, thin=thin))
         ok = "放得下" if max(w, h) <= BED - 4 else "放不下！"
         print(f"{name}：{w:.1f} x {h:.1f} mm，旋转 {deg} 度，A1 mini {ok}")
         save(body, name, step=not thin)
