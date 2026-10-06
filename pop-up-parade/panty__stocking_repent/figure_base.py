@@ -38,9 +38,13 @@ assert PAD_T - max(L for _, L in PEGS.values()) - EXTRA_DEPTH >= 1.0, "孔底太
 
 # ---------------------------------------------------------------- 试装 / 试摆结果（验证垫块 v1）
 # 孔松紧：Stocking 两孔都松 → 对边距各小 0.3；Panty 两孔都紧 → 各大 0.3
-HOLE_FLAT = {"S1": 5.356, "S2": 4.043, "P1": 5.401, "P2": 4.744}
+FIT_REQUEST = {"S1": -0.3, "S2": -0.3, "P1": +0.3, "P2": +0.3}   # 要求的对边距调整量
+# 按毫米一步调满太激进：改成在垫块孔上 松 -2% / 紧 +2% 出圆柱试样（--samples）
 # 量跨手办距离时垫块上的孔对边距（v1 打印的），用来把近边距换算成中心距
 PAD_FLAT_MEASURED = {"S1": 5.656, "S2": 4.343, "P1": 5.101, "P2": 4.444}
+# 圆柱试样 v1（±2%）试装后定的：在垫块孔上调的百分比，负 = 缩小
+FIT_PCT = {"S1": -1.0, "S2": -2.0, "P1": +1.0, "P2": +2.0}
+HOLE_FLAT = {k: PAD_FLAT_MEASURED[k] * (1 + p / 100) for k, p in FIT_PCT.items()}
 GROUPS = (("S1", "S2"), ("P1", "P2"))
 LAYOUT_GAPS = {("S1", "P1"): 50.5, ("S1", "P2"): 50.6, ("S2", "P1"): 46.8, ("S2", "P2"): 45.0}
 WEIGHT = {}
@@ -170,6 +174,17 @@ def check(holes):
 if __name__ == "__main__":
     import sys
     OUT.mkdir(exist_ok=True)
+    if "--samples" in sys.argv:   # 圆柱试样：垫块孔 松 -2% / 紧 +2%
+        import fit_samples as fs
+        parts = []
+        for k, d in FIT_REQUEST.items():
+            t, f = fs.nudge(PAD_FLAT_MEASURED[k], d)
+            parts.append(fs.puck(f, PEGS[k][1], k, t))
+            print(f"  {k} {t}%: 对边距 {PAD_FLAT_MEASURED[k]:.3f} → {f:.3f}")
+        cq.exporters.export(fs.grid(parts, 4, 23.0), str(OUT / "fit_samples_v1.stl"),
+                            tolerance=0.01, angularTolerance=0.1)
+        print("已输出", OUT / "fit_samples_v1.stl")
+        sys.exit()
     if "--trial" in sys.argv:   # 按当前孔径重新生成验证垫块（v1 已打印，不覆盖）
         cq.exporters.export(build_trial()[1], str(OUT / "trial_v2.stl"), tolerance=0.01, angularTolerance=0.1)
         print("已输出", OUT / "trial_v2.stl")
