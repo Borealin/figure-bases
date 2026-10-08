@@ -100,6 +100,106 @@ def solve_two_pairs(a, b, intra, gaps, calib_r, side=+1, weight=None, push_step=
     return holes, r0, r1, push
 
 
+def place_groups(local, poses):
+    """local = {组: {孔: 局部坐标}}，poses = {组: (tx, ty, 转角弧度)}；没给 pose 的组原样放。"""
+    out = {}
+    for g, hs in local.items():
+        tx, ty, th = poses.get(g, (0.0, 0.0, 0.0))
+        c, s = math.cos(th), math.sin(th)
+        for k, (x, y) in hs.items():
+            out[k] = (tx + c * x - s * y, ty + s * x + c * y)
+    return out
+
+
+def solve_groups(local, gaps, calib_r, fixed, weight=None, starts=300, seed=0):
+    """多组孔一起求：fixed 组不动，其余每组 (平移, 转角) 用跨组距离最小二乘（多起点 LM）。
+    gaps：跨组近边距，中心距 = 近边距 + calib_r[i] + calib_r[j]。
+    两个孔的组可能有镜像解（距离分不出来），所以返回去重后的候选 [(加权残差平方和, poses)]，按残差排序，
+    再用 pick_by_fronts 挑。"""
+    free = [g for g in local if g != fixed]
+    cd = {k: g + calib_r[k[0]] + calib_r[k[1]] for k, g in gaps.items()}
+    keys = list(cd)
+    w = np.array([(weight or {}).get(k, 1.0) for k in keys])
+
+    def poses_of(p):
+        return {g: tuple(p[3 * i:3 * i + 3]) for i, g in enumerate(free)}
+
+    def res(p):
+        P = place_groups(local, poses_of(p))
+        return np.array([math.dist(P[a], P[b]) - cd[(a, b)] for a, b in keys])
+
+    def lm(p):
+        lam = 1e-2
+        for _ in range(200):
+            f = res(p) * np.sqrt(w)
+            J = np.column_stack([(res(p + e) * np.sqrt(w) - f) / 1e-6 for e in np.eye(len(p)) * 1e-6])
+            A, g = J.T @ J, J.T @ f
+            step = np.linalg.solve(A + lam * np.diag(np.diag(A) + 1e-9), -g)
+            if np.sum((res(p + step) ** 2) * w) < np.sum(f ** 2):
+                p, lam = p + step, lam * 0.3
+            else:
+                lam *= 10
+            if np.linalg.norm(step) < 1e-10:
+                break
+        return p
+
+    span = max(cd.values()) * 1.5
+    rng = np.random.default_rng(seed)
+    found = []
+    for _ in range(starts):
+        p0 = np.concatenate([[rng.uniform(-span, span), rng.uniform(-span, span), rng.uniform(-math.pi, math.pi)]
+                             for _ in free])
+        p = lm(p0)
+        sse = float(np.sum(res(p) ** 2 * w))
+        P = place_groups(local, poses_of(p))
+        if any(all(math.dist(P[k], Q[k]) < 0.5 for k in P) for _, _, Q in found):
+            continue
+        found.append((sse, poses_of(p), P))
+    found.sort(key=lambda t: t[0])
+    return [(sse, poses) for sse, poses, _ in found]
+
+
+def fronts_spread(holes, fronts):
+    """各手办朝向的离散程度（1 - 平均单位向量的长度），0 = 完全一致。"""
+    v = [front_dir(holes, a, b, deg) for a, b, deg in fronts.values()]
+    mx, my = sum(x for x, _ in v) / len(v), sum(y for _, y in v) / len(v)
+    return 1 - math.hypot(mx, my)
+
+
+def pick_by_fronts(local, candidates, fronts, sse_factor=4.0):
+    """镜像解里挑一个：残差不超过最好解 sse_factor 倍的候选中，选各手办朝向最一致的。"""
+    best = candidates[0][0]
+    ok = [(fronts_spread(place_groups(local, p), fronts), sse, p) for sse, p in candidates
+          if sse <= max(best * sse_factor, best + 0.5)]
+    return min(ok, key=lambda t: t[0])
+
+
+def push_chain(local, poses, chain, gaps, calib_r, weight=None, step=0.05, tol=-0.02):
+    """宁远勿近（多组）：沿 chain 从固定组开始，逐个切开 chain[:i] | chain[i:]，
+    跨这道切口的距离（权重 1）有比实测短的，就把 chain[i:] 整体沿两组中心连线往外推，直到都不短。
+    返回 (poses, {组: 外推距离})。"""
+    cd = {k: g + calib_r[k[0]] + calib_r[k[1]] for k, g in gaps.items()}
+    poses = dict(poses)
+    pushes = {}
+    for i in range(1, len(chain)):
+        left, right = set(chain[:i]), set(chain[i:])
+        gof = {k: g for g, hs in local.items() for k in hs}
+        cut = [(a, b) for a, b in cd if (gof[a] in left) != (gof[b] in left) and (weight or {}).get((a, b), 1.0) >= 1.0]
+        P = place_groups(local, poses)
+        ca = np.mean([P[k] for k in local[chain[i - 1]]], axis=0)
+        cb = np.mean([P[k] for k in local[chain[i]]], axis=0)
+        u = (cb - ca) / np.linalg.norm(cb - ca)
+        push = 0.0
+        while push < 20:
+            moved = {g: (p[0] + push * u[0], p[1] + push * u[1], p[2]) if g in right else p for g, p in poses.items()}
+            P = place_groups(local, moved)
+            if all(math.dist(P[a], P[b]) - cd[(a, b)] >= tol for a, b in cut):
+                break
+            push += step
+        poses, pushes[chain[i]] = moved, push
+    return poses, pushes
+
+
 def frame_point(holes, a, b, along, right):
     """以 a→b 为轴：沿轴 along、往右 right 的点。"""
     u = unit(holes[a], holes[b])
@@ -150,14 +250,19 @@ def outline_points(holes, flats, centers, cog_r=15.0, chamfer=0.4):
 
 
 def build_base(holes, flats, depths, outline, T=11.0, margin=10.0, top_chamfer=1.0, chamfer=0.4,
-               thin=False, plate=0.8, post_wall=2.5, rib=(2.0, 5.0), chain=None):
-    """正式底座：T 厚实心 + 顶边倒角；thin=True：试摆底座（薄底板 + 每孔一个桩 + chain 上的加强筋）。"""
+               thin=False, plate=0.8, post_wall=2.5, rib=(2.0, 5.0), chain=None, recesses=(), hole_tops=None,
+               platforms=()):
+    """正式底座：T 厚实心 + 顶边倒角；thin=True：试摆底座（薄底板 + 每孔一个桩 + chain 上的加强筋）。
+    recesses = [(轮廓点, 深度)]：鞋形之类的凹槽（试摆底座上给它加一圈桩）；
+    hole_tops = {孔: 孔口高度}：凹槽里的孔从槽底往下开、舞台上的孔从台面往下开，depths 从孔口算；
+    platforms = [(轮廓点, 高度)]：在顶面上再垫高的舞台（正式底座才有，顶边倒角 0.8；试摆底座只把桩加高）。"""
+    tops = hole_tops or {}
     shape = cq.Workplane("XY").polyline(outline).close().offset2D(margin)
     if thin:
         body = shape.extrude(plate)
         for k, (x, y) in holes.items():
             r = flats[k] / math.sqrt(3) + chamfer + post_wall
-            body = body.union(cq.Workplane("XY").center(x, y).circle(r).extrude(T))
+            body = body.union(cq.Workplane("XY").center(x, y).circle(r).extrude(max(T, tops.get(k, T))))
         for p, q in zip(chain or [], (chain or [])[1:]):
             (x0, y0), (x1, y1) = holes[p], holes[q]
             cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
@@ -165,13 +270,58 @@ def build_base(holes, flats, depths, outline, T=11.0, margin=10.0, top_chamfer=1
                    .rect(math.dist(holes[p], holes[q]), rib[0]).extrude(rib[1] + 0.01)
                    .rotate((cx, cy, 0), (cx, cy, 1), math.degrees(math.atan2(y1 - y0, x1 - x0))))
             body = body.union(bar)
+        for poly, _ in recesses:
+            body = body.union(cq.Workplane("XY").polyline(poly).close().offset2D(post_wall).extrude(T))
     else:
         body = shape.extrude(T)
         if top_chamfer:
             body = body.faces(">Z").chamfer(top_chamfer)
+        for poly, h in platforms:
+            st = cq.Workplane("XY").workplane(offset=T - 0.01).polyline(poly).close().extrude(h - 0.79)
+            st = st.union(cq.Workplane("XY").workplane(offset=T + h - 0.8).polyline(poly).close().extrude(0.8, taper=45))
+            body = body.union(st)
+    for poly, depth in recesses:
+        body = body.cut(cq.Workplane("XY").workplane(offset=T - depth).polyline(poly).close().extrude(depth + 1))
     for k, (x, y) in holes.items():
-        body = cut_hex(body, x, y, flats[k], depths[k], T, chamfer)
+        body = cut_hex(body, x, y, flats[k], depths[k], tops.get(k, T), chamfer)
     return body
+
+
+def dovetail_region(p, n, u0, neck=10.0, head=16.0, depth=7.0, L=400.0):
+    """分块用的平面区域（右边那块）：过点 p、法向 n（指向右块）的直线右侧，
+    再加一个伸进左块的燕尾榫头，榫头中心在接缝上 u0 处。返回多边形点。"""
+    nx, ny = n
+    tx, ty = -ny, nx
+    uv = [(-L, 0), (u0 - neck / 2, 0), (u0 - head / 2, -depth), (u0 + head / 2, -depth), (u0 + neck / 2, 0),
+          (L, 0), (L, L), (-L, L)]
+    return [(p[0] + u * tx + v * nx, p[1] + u * ty + v * ny) for u, v in uv]
+
+
+def split_dovetail(body, region, T, gap=0.3, socket=None, tab=None):
+    """按 dovetail_region 把底座切成两块，接缝两边各留 gap/2 间隙；
+    也可以分别给：socket = 左块（榫眼）往外让多少，tab = 右块（榫头）往里缩多少，总间隙 = 两者之和。返回 (左块, 右块)。"""
+    socket = gap / 2 if socket is None else socket
+    tab = gap / 2 if tab is None else tab
+    tool = lambda off: cq.Workplane("XY").workplane(offset=-1).polyline(region).close().offset2D(off).extrude(T + 60)  # noqa: E731
+    return body.cut(tool(socket)), body.intersect(tool(-tab))
+
+
+def seam_span(outline, p, n, margin=10.0):
+    """接缝直线和底座外轮廓（凸包 + margin）相交的那一段，返回沿接缝的 (u 最小, u 最大)。"""
+    nx, ny = n
+    tx, ty = -ny, nx
+    def seg_dist(q, a, b):
+        ax, ay, bx, by = *a, *b
+        L2 = (bx - ax) ** 2 + (by - ay) ** 2
+        t = 0.0 if L2 == 0 else max(0.0, min(1.0, ((q[0] - ax) * (bx - ax) + (q[1] - ay) * (by - ay)) / L2))
+        return math.dist(q, (ax + t * (bx - ax), ay + t * (by - ay)))
+
+    us = []
+    for u in np.linspace(-300, 300, 3001):
+        q = (p[0] + u * tx, p[1] + u * ty)
+        if _inside(outline, q) or min(seg_dist(q, a, b) for a, b in zip(outline, outline[1:] + outline[:1])) <= margin:
+            us.append(u)
+    return min(us), max(us)
 
 
 # ---------------------------------------------------------------- 文字标签

@@ -76,10 +76,60 @@ def strip(rows, grades, pitch=10.0, size=4.0):
     return body
 
 
+def _engrave_side(body, text, size, x, y_face, zc, depth=0.4):
+    """在朝 -Y 的竖直侧面（y = y_face）刻字，从 -Y 方向看是正的。"""
+    t = basekit.text_solid(text, size, depth + 0.1).rotate((0, 0, 0), (1, 0, 0), 90)
+    bb = t.val().BoundingBox()
+    return body.cut(t.translate((x - bb.center.x, y_face + depth - bb.ymax, zc - bb.center.z)))
+
+
+def shared_flats(diams, grades=GRADES, tol=1.0):
+    """几根粗细接近的钉合用一根档位条：各自的 grades 档放在一起，相差不到 tol%（半档）的合成一个孔。"""
+    vals = sorted(d * g / 100 for d in diams for g in grades)
+    groups = [[vals[0]]]
+    for v in vals[1:]:
+        (groups[-1] if v <= groups[-1][0] * (1 + tol / 100) else groups.append([v]) or groups[-1]).append(v)
+    return [sum(g) / len(g) for g in groups]
+
+
+def size_tag(f):
+    """孔径刻字：对边距 x100，3.86 → "386"。"""
+    return f"{f * 100:.0f}"
+
+
+def gauge_bar(flats, peg_len, labels=None, name=None, pitch=9.0, wall=1.2, size=3.2, tab=10.0):
+    """档位条：一排孔按 flats 依次排开，每个孔正对的侧面刻 labels（默认刻对边距 x100），
+    有 name 时在一头加一块刻名字的把手。条做得窄：同一只鞋上的另一根钉离得近（7～14mm）时，
+    把鞋横过来放，另一根钉垂在条外面，不会顶住（多行公差条就会顶住）。"""
+    labels = labels or [size_tag(f) for f in flats]
+    n = len(flats)
+    w = 2 * (max(flats) / math.sqrt(3) + CHAMFER + wall)
+    h = peg_len + EXTRA_DEPTH + FLOOR
+    length = n * pitch
+    body = cq.Workplane("XY").center(length / 2, 0).rect(length, w).extrude(h)
+    if name:
+        body = body.union(cq.Workplane("XY").center(-tab / 2, 0).rect(tab, max(w, 11.0)).extrude(h))
+    for i, (f, t) in enumerate(zip(flats, labels)):
+        x = (i + 0.5) * pitch
+        body = basekit.cut_hex(body, x, 0, f, peg_len + EXTRA_DEPTH, h, CHAMFER)
+        body = _engrave_side(body, t, size, x, -w / 2, h / 2)
+    if name:
+        t = basekit.text_solid(name, 4.0, 0.6)
+        bb = t.val().BoundingBox()
+        body = body.cut(t.translate((-tab / 2 - bb.center.x, -bb.center.y, h - 0.5)))
+    return body
+
+
+def bar(name, d, peg_len, grades=GRADES, **kw):
+    """单根钉的档位条：刻名字的那头起按 grades（实测钉径的百分比）排，侧面刻档位。"""
+    return gauge_bar([d * g / 100 for g in grades], peg_len, [tag(g) for g in grades], name, **kw)
+
+
 def grid(parts, cols, pitch):
-    """parts 按行排成网格（一行 cols 个），返回一个 compound。"""
+    """parts 按行排成网格（一行 cols 个），pitch 可以是 (列距, 行距)，返回一个 compound。"""
+    px, py = pitch if isinstance(pitch, tuple) else (pitch, pitch)
     out = []
     for i, p in enumerate(parts):
         r, c = divmod(i, cols)
-        out.append(p.translate(((c - (cols - 1) / 2) * pitch, -r * pitch, 0)).val())
+        out.append(p.translate(((c - (cols - 1) / 2) * px, -r * py, 0)).val())
     return cq.Workplane().add(cq.Compound.makeCompound(out))
