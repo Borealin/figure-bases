@@ -3,22 +3,37 @@
 自制 3D 打印手办底座：把原厂分开的底座合成一块、按自己想要的摆法重新排，省空间。
 CadQuery 建模，Bambu Lab A1 mini 打印。
 
-## 底座列表
+## 底座一览
 
-| 系列 | 手办 | 文件夹 | 摆法 | 尺寸 | 状态 |
-|---|---|---|---|---|---|
-| POP UP PARADE | 東方仗助 × 岸辺露伴（『ジョジョの奇妙な冒険 ダイヤモンドは砕けない』） | [josuke-higashikata__rohan-kishibe](pop-up-parade/josuke-higashikata__rohan-kishibe) | 交叠 | 146 × 97 | 已打印 |
-| POP UP PARADE | 2B × A2（『NieR:Automata Ver1.1a』） | [2b__a2](pop-up-parade/2b__a2) | L 形 | 128 × 144 | 已打印 |
-| POP UP PARADE | Panty & Stocking Set（『Panty & Stocking with Garterbelt』） | [panty__stocking](pop-up-parade/panty__stocking) | 背靠背 | 110 × 130 | 已打印 |
-| POP UP PARADE | Panty & Stocking Set: Repent Ver. L Size | [panty__stocking_repent](pop-up-parade/panty__stocking_repent) | 并排 | 103 × 104 | 已打印 |
-| POP UP PARADE | Byleth (Male) × Byleth (Female)（『Fire Emblem: Three Houses』） | [byleth-male__byleth-female](pop-up-parade/byleth-male__byleth-female) | 并排 | 153 × 157 | 已打印 |
-| POP UP PARADE SP | Wise × Belle（『Zenless Zone Zero』） | [wise__belle](pop-up-parade/wise__belle) | 并排 | 77 × 103 | 已打印，W2 放大重打 |
-| 待补 | 露比 × 爱 × 阿库亚 × 有马加奈（『【推しの子】』） | [_wip/oshi-no-ko](_wip/oshi-no-ko) | 四人弧形，爱站 5mm 圆台；两块燕尾榫拼 | 127 × 124 + 106 × 85 | 已打印（商品名待补，之后挪文件夹） |
+| | 手办 | 摆法 | 底座（mm） | 打印 |
+|---|---|---|---|---|
+| <img src="pop-up-parade/josuke-higashikata__rohan-kishibe/images/preview.svg" width="240"> | [**東方仗助 × 岸辺露伴**](pop-up-parade/josuke-higashikata__rohan-kishibe)<br>POP UP PARADE Josuke Higashikata / Rohan Kishibe<br>『ジョジョの奇妙な冒険 ダイヤモンドは砕けない』 | 交叠 | 146 × 97 | 52 分钟 / 44g |
+| <img src="pop-up-parade/2b__a2/images/preview.svg" width="240"> | [**2B × A2**](pop-up-parade/2b__a2)<br>POP UP PARADE 2B / A2<br>『NieR:Automata Ver1.1a』 | L 形，带鞋跟凹槽 | 128 × 144 | 54 分钟 / 47g |
+| <img src="pop-up-parade/panty__stocking/images/preview.svg" width="240"> | [**Panty & Stocking**](pop-up-parade/panty__stocking)<br>POP UP PARADE Panty & Stocking Set<br>『Panty & Stocking with Garterbelt』 | 背靠背 | 110 × 130 | 44 分钟 / 35g |
+| <img src="pop-up-parade/panty__stocking_repent/images/preview.svg" width="240"> | [**Panty & Stocking Repent Ver.**](pop-up-parade/panty__stocking_repent)<br>POP UP PARADE Panty & Stocking Set: Repent Ver. L Size | 并排 | 103 × 104 | 37 分钟 / 29g |
+| <img src="pop-up-parade/byleth-male__byleth-female/images/preview.svg" width="240"> | [**贝雷特 × 贝雷丝**](pop-up-parade/byleth-male__byleth-female)<br>POP UP PARADE Byleth (Male) / Byleth (Female)<br>『Fire Emblem: Three Houses』 | 并排 | 153 × 157 | 1 小时 04 分 / 57g |
+| <img src="pop-up-parade/wise__belle/images/preview.svg" width="240"> | [**哲 × 铃**](pop-up-parade/wise__belle)<br>POP UP PARADE SP Wise / Belle<br>『Zenless Zone Zero』 | 并排 | 77 × 103 | 31 分钟 / 24g |
+| <img src="pop-up-parade/ruby__ai__aqua__kana-arima/images/preview.svg" width="240"> | [**露比 × 爱 × 阿库亚 × 有马加奈**](pop-up-parade/ruby__ai__aqua__kana-arima)<br>POP UP PARADE Ruby / Ai / Aqua / Kana Arima<br>『【推しの子】』 | 四人弧形，爱站 5mm 圆台 | 两块燕尾榫拼：127 × 124 + 106 × 85 | 1 小时 27 分 / 71g |
 
-尺寸单位 mm，厚度都是 11mm。所有正式底座都刻了手办名字，防止几套搞混。
-文件夹命名：`<系列>/<角色罗马音>__<角色罗马音>`，完整商品名写在各自的 README 里。
+全部已打印，厚度都是 11mm，都刻了手办名字。打印参数：A1 mini · 0.4 喷嘴 · 0.20mm Standard · Bambu PLA Basic。
 
-`plates/` 放几套拼在一起的打印盘（`plate_test_*` 是试摆盘，`plate_fit-samples_*` 是孔径试样）。
+## 目录结构
+
+```
+pop-up-parade/<角色>__<角色>/   一套一个文件夹，名字按商品名
+├── README.md                   手办官网链接、效果图、孔位和参数、过程
+├── base.py                     生成脚本：实测数据和试出来的参数都在开头
+├── base.step                   最终模型（分块的是 base_<块>.step）
+├── base_a1mini.3mf             切好片，直接打印（分块的拼在一盘）
+└── images/                     preview.svg 效果图，holes.svg 孔位编号
+tools/                          各套共用的工具
+```
+
+重新生成：`python base.py` 出 STEP，加 `--slice` 再切片成 3mf，加 `--preview` 重画效果图（切片用的 STL 在 `build/`，不进仓库）。
+
+过程中的东西（验证垫块、孔径试样、试摆底座、打印过的旧版本、几套拼一盘的打印盘）只在各自 README 的"过程"表里留一句结论，
+文件本身在 tag [`archive/process-2026-10-08`](https://github.com/Borealin/figure-bases/tree/archive/process-2026-10-08) 里。
+新的一套在做的时候，过程件也由 base.py 生成到 `build/`；定稿后 base.py 只留最终底座，过程写进 README。
 
 ## 流程
 
@@ -32,7 +47,7 @@ CadQuery 建模，Bambu Lab A1 mini 打印。
    - 每根钉一组圆柱试样；同一套里几根钉粗细接近时，改成一根公差条（一行一根钉 × 五档）更省
    - 两根钉在同一只鞋上、只隔 7～14mm 时，多行公差条会被另一根钉顶住：改用窄的档位条，鞋横过来放；
      粗细接近的钉合用一根条（每根钉都能找到自己的五档），侧面刻对边距 ×100
-   - 几套可以一次量完、垫块和试样拼一盘打（见 `plates/`）
+   - 几套可以一次量完、垫块和试样拼一盘打
 4. **试摆**：垫块粘在垫子上摆出想要的效果，拔下手办，量跨手办的孔边距离，用最小二乘解出相对位置。
    - 近边距按六边形外接圆半径换算成中心距，拟合后有比实测近的就整体往外推——**宁远勿近**
    - 每人只有两个孔时距离解不出镜像：给出"正面看从左到右的孔顺序"，再结合原厂底座俯拍推出的朝向就能定
@@ -42,6 +57,7 @@ CadQuery 建模，Bambu Lab A1 mini 打印。
 5. **试摆底座**：0.8mm 薄底板 + 每孔一个桩 + 加强筋 + 凸字，省料，确认摆位、朝向和重心。
 6. **正式底座**：11mm 实心整板 + 刻字。外轮廓包住所有孔和原厂底座中心周围 15mm（保证重心在底座内），再留 10mm 边。
    没钉的那只脚（踮脚之类）也要落在底座上。整块超过平台（176mm）就切块，燕尾榫拼。
+7. **定稿**：base.py 只留最终底座，出 STEP、3mf、效果图；README 写手办链接、参数和一张过程表。
 
 经验参数（A1 mini + Bambu PLA Basic + 0.20mm Standard）：
 
@@ -60,6 +76,7 @@ CadQuery 建模，Bambu Lab A1 mini 打印。
 | 文件 | 用途 |
 |---|---|
 | `tools/fit_samples.py` | 孔径试样：圆柱试样（帽子形，一档一个）、公差条、窄档位条（粗细接近的钉合用一根）、五档 / ±2% 档位计算 |
+| `tools/setkit.py` | 每套 base.py 的收尾：导出 STEP、`--slice` 切片成一盘 |
 | `tools/basekit.py` | 两组 / 多组孔的摆放求解（多起点最小二乘、按朝向挑镜像、宁远勿近外推）、朝向 / 左右顺序核对、外轮廓、底座建模（凹槽、舞台、燕尾榫分块）、自动找位置刻字 |
 | `tools/base_preview.py` | 底座预览图：平台上的俯视图（孔、原厂底座中心、手办朝向）+ 立体图 |
 | `tools/heic2jpg.py` | iPhone HEIC 照片转 JPG（ffmpeg 拼回分块网格） |

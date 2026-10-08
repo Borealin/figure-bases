@@ -1,48 +1,50 @@
-# POP UP PARADE Panty & Stocking Set: Repent Ver. L Size 合体底座
+# Panty & Stocking Repent Ver. 合体底座
+
+![效果图](images/preview.svg)
 
 | | |
 |---|---|
-| 手办 | Good Smile Company **POP UP PARADE Panty & Stocking Set: Repent Ver. L Size**（天使造型，单脚站立） |
+| 手办 | [POP UP PARADE Panty & Stocking Set: Repent Ver. L Size](https://www.goodsmile.com/en/product/44804)（约 210mm，天使造型，单脚站立） |
 | 作品 | 『Panty & Stocking with Garterbelt』 |
 | 摆法 | 并排，正面看从左到右 S1 S2 P2 P1（Stocking 在左） |
-| 成品 | 103 × 104 × 11mm 实心底座，刻 "Repent Stocking" / "Repent Panty" |
-| 打印 | 和哲 × 铃的底座拼一盘（`plates/plate_repent-base+wise-belle-base`） |
-| 状态 | 已打印（孔径按圆柱试样定稿，跳过了试摆底座），效果 OK |
+| 底座 | 103 × 104 × 11mm 实心，4 个六边形孔，刻 "Repent Stocking" / "Repent Panty" |
+| 打印 | A1 mini · 0.20mm Standard · PLA Basic · 约 37 分钟 / 29g |
+| 状态 | 已打印，效果 OK |
 
-![底座](docs/base.svg)
+## 文件
 
-## 孔位
+| 文件 | |
+|---|---|
+| `base.py` | 生成脚本，实测数据和试出来的参数都在开头；`python base.py [--slice] [--preview]` |
+| `base.step` | 最终模型 |
+| `base_a1mini.3mf` | 切好片，直接打印 |
+| `images/` | 效果图、孔位编号 |
 
-![孔位编号](docs/hole-labels.svg)
+## 孔位与参数
 
-每人只有一只脚落地，一大一小两根钉：
+![孔位编号](images/holes.svg)
+
+每人只有一只脚落地，一大一小两根钉（S = Stocking，P = Panty）：
 
 | | S1 | S2 | P1 | P2 |
 |---|---|---|---|---|
 | 钉径 | 5.6 | 4.3 | 5.05 | 4.4 |
 | 钉长 | 7.0 | 7.0 | 7.3 | 7.3 |
-| 试样（松 −2% / 紧 +2%） | 5.54 | 4.26 | 5.20 | 4.53 |
-| **底座孔（定稿）** | 5.60 | 4.26 | 5.15 | 4.53 |
-| 相对垫块孔 | −1% | −2% | +1% | +2% |
+| 底座孔（对边距） | 5.60 | 4.26 | 5.15 | 4.53 |
+| 相对垫块孔（钉径 × 1.01） | −1% | −2% | +1% | +2% |
 
 - 组内中心距（钉圆周最远距离 − 两半径）：S1–S2 8.55，P1–P2 9.78
-- 跨手办近边距（垫块上量）：S1–P1 50.5、S1–P2 50.6、S2–P1 46.8、S2–P2 45.0
+- 跨手办近边距（垫块上量）：S1–P1 50.5、S1–P2 50.6、S2–P1 46.8、S2–P2 45.0；按六边形外接圆半径换算（宁远勿近），拟合残差 < 0.2mm，再往外推 0.2mm
+- 镜像：两人朝向从原厂底座俯拍推出，只有一种摆法朝向一致、左右顺序对上
 
 ## 过程
 
-1. 验证垫块 v1（孔 = 钉径 × 1.01）：Stocking 两孔都松 → 各小 0.3；Panty 两孔都紧 → 各大 0.3。
-2. 近边距按六边形外接圆半径换算中心距（宁远勿近），拟合残差 < 0.2mm，再把两人往外推 0.2mm 保证没有一对比实测近。
-3. 镜像：两人朝向从 IMG_5170 俯拍推出（照片下方是正面），只有一种摆法让两人朝向一致、左右顺序对上实测。
-4. 加刻字，出试摆底座。
-5. 回头看第 1 步按毫米一次调满太激进：改成在垫块孔上 松 −2% / 紧 +2% 出圆柱试样（`python figure_base.py --samples`），试完再定孔径，重出试摆 / 正式底座。
-6. 圆柱试样试装后定孔径（相对垫块孔）：S1 −1%、S2 −2%、P1 +1%、P2 +2%，重出试摆 / 正式底座。
+| # | 打印了什么 | 结果 → 改动 |
+|---|---|---|
+| 1 | 验证垫块（孔 = 钉径 × 1.01）+ 摆位 | Stocking 两孔偏松、Panty 两孔偏紧；量 4 条跨手办距离 |
+| 2 | 圆柱试样（垫块孔 ±2%） | S1 −1%、S2 −2%、P1 +1%、P2 +2% |
+| 3 | 正式底座（跳过了试摆底座） | 效果 OK |
 
-## 文件
+一开始按"各调 0.3mm"一步调满太激进，改成先出 ±2% 的圆柱试样再定（见根目录 README 的经验参数）。
 
-| 文件 | 说明 |
-|---|---|
-| `figure_base.py` | 脚本（底座部分用 `tools/basekit.py`）；`--trial` 按当前孔径重新生成垫块 |
-| `out/base*` | 正式底座 |
-| `out/test_base_thin*` | 试摆底座（凸字） |
-| `out/trial_v1*` | 验证垫块（已打印） |
-| `out/fit_samples_v1.stl` | 圆柱试样：上刻钉名、下刻档位（-2 / +2 = 垫块孔 −2% / +2%） |
+过程中的垫块、试样和试摆底座在 tag [`archive/process-2026-10-08`](https://github.com/Borealin/figure-bases/tree/archive/process-2026-10-08/pop-up-parade/panty__stocking_repent) 里。
